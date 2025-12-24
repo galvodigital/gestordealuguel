@@ -15,7 +15,7 @@
     <style>
         /* --- VARIÁVEIS DE COR (TEMA) --- */
         :root {
-            --primary: #2563eb;       /* Cor Principal */
+            --primary: #2563eb;       
             --primary-dark: #1e40af;
             --bg: #f3f4f6;
             --danger: #dc2626;
@@ -26,6 +26,7 @@
         /* --- RESET E BASE --- */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: var(--bg); margin: 0; padding: 10px; padding-bottom: 100px; color: var(--text-main); }
+
 
         /* --- HEADER --- */
         header {
@@ -39,11 +40,18 @@
         .header-right { text-align: right; }
         .total-display { font-size: 1.5rem; font-weight: 800; }
 
-        /* --- CATEGORIAS --- */
-        .cat-title {
-            font-size: 1rem; font-weight: 700; color: #4b5563; margin: 20px 0 10px 5px;
-            text-transform: uppercase; border-left: 4px solid var(--primary); padding-left: 10px;
+        /* --- CATEGORIAS (COM BOTÕES DE EDIÇÃO) --- */
+        .cat-header-row {
+            display: flex; justify-content: space-between; align-items: center;
+            margin: 25px 0 10px 5px; border-left: 4px solid var(--primary); padding-left: 10px;
         }
+        .cat-title {
+            font-size: 1rem; font-weight: 700; color: #4b5563; text-transform: uppercase;
+        }
+        .cat-tools button {
+            background: none; border: none; font-size: 1rem; padding: 5px; cursor: pointer; color: #9ca3af;
+        }
+        .cat-tools button:hover { color: var(--primary); }
 
         /* --- GRID E CARDS --- */
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -123,24 +131,29 @@
         .btn-modal-confirm { background: var(--primary); color: white; }
         .btn-modal-danger { background: var(--danger); color: white; }
 
-        /* Preço Editável no Modal */
-        .editable-price-label { font-size: 0.85rem; color: #666; font-weight: bold; display: block; margin-bottom: 5px; }
+        /* Inputs Editáveis no Modal */
+        .editable-input { 
+            width: 100%; padding: 12px; font-size: 1.1rem; 
+            border: 2px solid #e5e7eb; border-radius: 8px;
+            outline: none; background: #f9fafb;
+        }
+        .editable-input:focus { border-color: var(--primary); background: white; }
+
         .editable-price-input { 
             width: 100%; padding: 15px; font-size: 1.8rem; font-weight: bold; color: #16a34a; 
             text-align: center; border: 2px solid #e5e7eb; border-radius: 12px;
             outline: none; background: #f9fafb;
         }
-        .editable-price-input:focus { border-color: #16a34a; background: white; }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        td { padding: 8px 0; border-bottom: 1px solid #eee; }
+        .total-row td { border-top: 2px solid #333; font-weight: bold; font-size: 1.1rem; padding-top: 10px; }
 
         /* FORMS */
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.85rem; color: #4b5563; }
         input[type="text"], input[type="number"], select { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 1rem; }
         input[type="color"] { width: 100%; height: 40px; padding: 2px; border: 1px solid #d1d5db; border-radius: 8px; cursor: pointer; }
-        
-        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-        td { padding: 8px 0; border-bottom: 1px solid #eee; }
-        .total-row td { border-top: 2px solid #333; font-weight: bold; font-size: 1.1rem; padding-top: 10px; }
 
     </style>
 </head>
@@ -172,7 +185,7 @@
         <button class="fab-btn" onclick="APP.openReport()" title="Fechamento">📊</button>
     </div>
 
-    <!-- MODAL CONFIRMAÇÃO / COBRANÇA -->
+    <!-- MODAL CONFIRMAÇÃO / INPUT -->
     <div id="modal-confirm" class="modal-overlay">
         <div class="modal-box">
             <h3 class="modal-title" id="confirm-title">Título</h3>
@@ -212,7 +225,7 @@
             <div class="form-group">
                 <label>Nova Categoria</label>
                 <div style="display:flex; gap:8px;">
-                    <input type="text" id="new-cat" placeholder="Ex: Patinetes">
+                    <input type="text" id="new-cat" placeholder="Ex: Categoria 3">
                     <button class="btn-green" style="width: 80px; border-radius:8px;" onclick="APP.addCategory()">Add</button>
                 </div>
             </div>
@@ -220,7 +233,7 @@
             <div class="form-group">
                 <label>Novo Brinquedo</label>
                 <select id="cat-select" style="margin-bottom:8px;"></select>
-                <input type="text" id="new-toy" placeholder="Nome do Brinquedo">
+                <input type="text" id="new-toy" placeholder="Ex: Brinquedo 5">
                 <button class="btn-full btn-green" style="margin-top:8px;" onclick="APP.addToy()">Salvar Brinquedo</button>
             </div>
             
@@ -250,13 +263,13 @@
                     themeColor: "#2563eb"
                 },
                 categories: [
-                    { id: 'c1', name: 'Drifts' },
-                    { id: 'c2', name: 'Bicicletas' }
+                    { id: 'c1', name: 'Categoria 1' },
+                    { id: 'c2', name: 'Categoria 2' }
                 ],
                 toys: [
-                    { id: 't1', catId: 'c1', name: 'Drift Preto', total: 0, status: 'free' },
-                    { id: 't2', catId: 'c1', name: 'Drift Vermelho', total: 0, status: 'free' },
-                    { id: 't3', catId: 'c2', name: 'Bike Azul', total: 0, status: 'free' }
+                    { id: 't1', catId: 'c1', name: 'Brinquedo 1', total: 0, status: 'free' },
+                    { id: 't2', catId: 'c1', name: 'Brinquedo 2', total: 0, status: 'free' },
+                    { id: 't3', catId: 'c2', name: 'Brinquedo 3', total: 0, status: 'free' }
                 ],
                 dayTotal: 0
             },
@@ -265,19 +278,18 @@
 
             init() {
                 try {
-                    const saved = localStorage.getItem('galvo_praca_v3');
+                    const saved = localStorage.getItem('galvo_praca_v4_def');
                     if(saved) {
                         const parsed = JSON.parse(saved);
                         APP.data = { ...APP.data, ...parsed };
-                        if (!parsed.config || !parsed.config.appName) {
-                             APP.data.config.appName = "Gestor de Aluguéis";
-                        }
+                        // Garante estrutura da config
                         APP.data.config = { ...APP.data.config, ...parsed.config };
                     }
                 } catch(e) { console.log('Storage Error'); }
                 
+                // Aplica configurações
                 APP.applyTheme(APP.data.config.themeColor);
-                document.getElementById('app-title-display').innerText = APP.data.config.appName;
+                if(APP.data.config.appName) document.getElementById('app-title-display').innerText = APP.data.config.appName;
                 
                 document.getElementById('cfg-price').value = APP.data.config.price;
                 document.getElementById('cfg-app-name').value = APP.data.config.appName;
@@ -289,7 +301,7 @@
 
             save() {
                 try {
-                    localStorage.setItem('galvo_praca_v3', JSON.stringify(APP.data));
+                    localStorage.setItem('galvo_praca_v4_def', JSON.stringify(APP.data));
                 } catch(e) {}
                 APP.updateHeader();
             },
@@ -317,6 +329,74 @@
                 if(meta) meta.setAttribute('content', color);
             },
 
+            // --- GESTÃO DE CATEGORIAS ---
+
+            // Renomear Categoria
+            preRenameCat(id) {
+                const cat = APP.data.categories.find(c => c.id === id);
+                if(!cat) return;
+
+                const title = document.getElementById('confirm-title');
+                const content = document.getElementById('confirm-content');
+                const btn = document.getElementById('confirm-btn-action');
+
+                title.innerText = "Renomear Categoria";
+                title.style.color = "#333";
+                
+                content.innerHTML = `
+                    <label style="display:block; margin-bottom:5px; color:#666;">Novo Nome:</label>
+                    <input type="text" id="rename-cat-input" class="editable-input" value="${cat.name}">
+                `;
+
+                btn.innerText = "Salvar";
+                btn.className = "btn-modal btn-modal-confirm";
+
+                APP.pendingAction = () => {
+                    const newName = document.getElementById('rename-cat-input').value;
+                    if(newName) {
+                        cat.name = newName;
+                        APP.save();
+                        APP.render();
+                    }
+                    APP.closeConfirm();
+                };
+                APP.openConfirm();
+            },
+
+            // Excluir Categoria
+            preDeleteCat(id) {
+                const cat = APP.data.categories.find(c => c.id === id);
+                if(!cat) return;
+
+                const title = document.getElementById('confirm-title');
+                const content = document.getElementById('confirm-content');
+                const btn = document.getElementById('confirm-btn-action');
+
+                title.innerText = "Excluir Categoria?";
+                title.style.color = "#dc2626";
+                content.innerHTML = `
+                    <p style="color:#666;">
+                        Você está prestes a apagar <strong>${cat.name}</strong> e 
+                        todos os brinquedos dentro dela.
+                    </p>
+                `;
+
+                btn.innerText = "Sim, Excluir";
+                btn.className = "btn-modal btn-modal-danger";
+
+                APP.pendingAction = () => {
+                    // Remove brinquedos dessa categoria
+                    APP.data.toys = APP.data.toys.filter(t => t.catId !== id);
+                    // Remove categoria
+                    APP.data.categories = APP.data.categories.filter(c => c.id !== id);
+                    
+                    APP.save();
+                    APP.render();
+                    APP.closeConfirm();
+                };
+                APP.openConfirm();
+            },
+
             // --- LÓGICA DO ALUGUEL ---
 
             start(id) {
@@ -335,19 +415,16 @@
                 }
             },
 
-            // NOVA FUNÇÃO: Adicionar tempo
             addTime(id) {
                 const toy = APP.data.toys.find(t => t.id === id);
                 if(toy && toy.status === 'busy') {
-                    // Adiciona 5 minutos (5 * 60 * 1000 ms)
-                    toy.end += 300000;
-                    toy.duration += 5; // Apenas para registro visual se precisasse
+                    toy.end += 300000; // +5 mins
+                    toy.duration += 5; 
                     APP.save();
                     APP.render();
                 }
             },
 
-            // COBRAR (Atualizado para permitir edição)
             preStop(id) {
                 const toy = APP.data.toys.find(t => t.id === id);
                 if(!toy) return;
@@ -376,8 +453,7 @@
                     <p style="margin:0 0 15px 0; font-size:0.9rem; color:#666;">
                         Tempo Total: ${finalMin} min <span style="color:#dc2626;">(${extra > 0 ? '+' + extra + ' excedente' : 'normal'})</span>
                     </p>
-                    
-                    <label class="editable-price-label">Valor Final (Toque para editar)</label>
+                    <label class="editable-price-label" style="display:block; margin-bottom:5px; color:#666; font-size:0.8rem;">Valor Final (Toque para editar)</label>
                     <input type="number" id="final-price-input" class="editable-price-input" value="${calculatedVal.toFixed(2)}" step="0.10">
                 `;
                 
@@ -385,7 +461,6 @@
                 btn.className = "btn-modal btn-modal-confirm";
                 
                 APP.pendingAction = () => {
-                    // Pega o valor que está no input (editado ou não)
                     const inputVal = document.getElementById('final-price-input').value;
                     const finalPrice = parseFloat(inputVal);
 
@@ -517,10 +592,17 @@
                     opt.innerText = cat.name;
                     select.appendChild(opt);
 
-                    const title = document.createElement('div');
-                    title.className = 'cat-title';
-                    title.innerText = cat.name;
-                    container.appendChild(title);
+                    // Render Categoria com Botões de Edição
+                    const headerRow = document.createElement('div');
+                    headerRow.className = 'cat-header-row';
+                    headerRow.innerHTML = `
+                        <div class="cat-title">${cat.name}</div>
+                        <div class="cat-tools">
+                            <button onclick="APP.preRenameCat('${cat.id}')">✏️</button>
+                            <button onclick="APP.preDeleteCat('${cat.id}')">🗑️</button>
+                        </div>
+                    `;
+                    container.appendChild(headerRow);
 
                     const grid = document.createElement('div');
                     grid.className = 'grid';
@@ -625,7 +707,6 @@
 
             openConfirm() {
                 document.getElementById('modal-confirm').style.display = 'flex';
-                // Re-bind click do botão confirmar para evitar duplicidade
                 const btn = document.getElementById('confirm-btn-action');
                 const newBtn = btn.cloneNode(true);
                 btn.parentNode.replaceChild(newBtn, btn);
@@ -642,3 +723,5 @@
     </script>
 </body>
 </html>
+
+                        
