@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- TAGS PARA PARECER APLICATIVO (TELA CHEIA) -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#2563eb" id="meta-theme-color">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3081/3081329.png">
+
+    <title>Gestor de Aluguéis</title>
+    <style>
+        /* --- VARIÁVEIS DE COR (TEMA) --- */
+        :root {
+            --primary: #2563eb;       /* Cor Principal */
+            --primary-dark: #1e40af;
+            --bg: #f3f4f6;
+            --danger: #dc2626;
+            --success: #16a34a;
+            --text-main: #1f2937;
+        }
+
+        /* --- RESET E BASE --- */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg); margin: 0; padding: 10px; padding-bottom: 100px; color: var(--text-main); }
+
+        /* --- HEADER --- */
+        header {
+            background: var(--primary); color: white; padding: 15px; border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            transition: background 0.3s ease;
+        }
+        .header-left h1 { margin: 0; font-size: 1.2rem; font-weight: 700; }
+        .header-left span { font-size: 0.8rem; opacity: 0.9; }
+        .header-right { text-align: right; }
+        .total-display { font-size: 1.5rem; font-weight: 800; }
+
+        /* --- CATEGORIAS --- */
+        .cat-title {
+            font-size: 1rem; font-weight: 700; color: #4b5563; margin: 20px 0 10px 5px;
+            text-transform: uppercase; border-left: 4px solid var(--primary); padding-left: 10px;
+        }
+
+        /* --- GRID E CARDS --- */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        .card {
+            background: white; border-radius: 12px; padding: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-direction: column;
+            min-height: 170px; border: 2px solid transparent; transition: all 0.2s;
+        }
+        
+        .card.livre { border-color: #e5e7eb; }
+        .card.ocupado { border-color: var(--success); background-color: #f0fdf4; }
+        .card.vencido { border-color: var(--danger); background-color: #fef2f2; animation: pulse 1s infinite; }
+
+        @keyframes pulse { 50% { border-color: transparent; } }
+
+        .card-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .toy-name { font-weight: 700; font-size: 0.95rem; line-height: 1.2; color: var(--text-main); }
+        .btn-trash-toy { background: none; border: none; color: #9ca3af; padding: 0; font-size: 1.1rem; cursor: pointer; }
+
+        .toy-stats { font-size: 0.75rem; color: #6b7280; margin-bottom: auto; }
+
+        /* TIMER E BOTÕES */
+        .timer-display {
+            font-family: monospace; font-size: 1.6rem; font-weight: 800;
+            text-align: center; margin: 5px 0; color: var(--text-main);
+        }
+        .timer-display.red { color: var(--danger); }
+
+        .actions { display: flex; gap: 6px; margin-top: 5px; }
+        
+        button { border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; transition: transform 0.1s; }
+        button:active { transform: scale(0.96); }
+
+        .btn-full { width: 100%; padding: 12px; color: white; }
+        .btn-green { background: var(--success); }
+        .btn-red { background: var(--danger); }
+        .btn-blue { background: #3b82f6; color: white; }
+        .btn-icon { width: 44px; display: flex; align-items: center; justify-content: center; background: #e5e7eb; color: #374151; }
+
+        .input-time { width: 100%; padding: 10px; text-align: center; border: 1px solid #d1d5db; border-radius: 8px; font-size: 1.1rem; font-weight: bold; margin-bottom: 6px; outline-color: var(--primary); }
+
+        /* --- MENU FLUTUANTE --- */
+        .fab-bar {
+            position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+            background: #1f2937; padding: 5px; border-radius: 50px;
+            display: flex; gap: 5px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 50;
+        }
+        .fab-btn {
+            background: transparent; color: white; border: none; width: 50px; height: 50px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+        }
+
+        /* --- FOOTER GALVO --- */
+        .footer-credits {
+            text-align: center; font-size: 0.75rem; color: #9ca3af;
+            margin-top: 30px; padding-bottom: 10px;
+        }
+
+        /* --- MODAIS --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 100; display: none;
+            align-items: center; justify-content: center; backdrop-filter: blur(2px);
+        }
+        .modal-box {
+            background: white; width: 90%; max-width: 360px; border-radius: 16px;
+            padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            max-height: 85vh; overflow-y: auto;
+        }
+
+        .modal-title { margin: 0 0 10px 0; font-size: 1.2rem; color: #111; }
+        .modal-text { margin: 0 0 20px 0; color: #666; line-height: 1.5; }
+        .modal-buttons { display: flex; gap: 10px; }
+        .btn-modal { flex: 1; padding: 12px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; }
+        .btn-modal-cancel { background: #f3f4f6; color: #333; }
+        .btn-modal-confirm { background: var(--primary); color: white; }
+        .btn-modal-danger { background: var(--danger); color: white; }
+
+        /* Preço Editável no Modal */
+        .editable-price-label { font-size: 0.85rem; color: #666; font-weight: bold; display: block; margin-bottom: 5px; }
+        .editable-price-input { 
+            width: 100%; padding: 15px; font-size: 1.8rem; font-weight: bold; color: #16a34a; 
+            text-align: center; border: 2px solid #e5e7eb; border-radius: 12px;
+            outline: none; background: #f9fafb;
+        }
+        .editable-price-input:focus { border-color: #16a34a; background: white; }
+
+        /* FORMS */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.85rem; color: #4b5563; }
+        input[type="text"], input[type="number"], select { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 1rem; }
+        input[type="color"] { width: 100%; height: 40px; padding: 2px; border: 1px solid #d1d5db; border-radius: 8px; cursor: pointer; }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        td { padding: 8px 0; border-bottom: 1px solid #eee; }
+        .total-row td { border-top: 2px solid #333; font-weight: bold; font-size: 1.1rem; padding-top: 10px; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Header Dinâmico -->
+    <header>
+        <div class="header-left">
+            <h1 id="app-title-display">Carregando...</h1>
+            <span id="active-count">0 Ativos</span>
+        </div>
+        <div class="header-right">
+            <small>Caixa do Dia</small>
+            <div class="total-display" id="total-revenue">R$ 0,00</div>
+        </div>
+    </header>
+
+    <!-- Área Principal -->
+    <div id="main-area"></div>
+
+    <!-- Rodapé -->
+    <div class="footer-credits">
+        Desenvolvido por Galvo Digital
+    </div>
+
+    <!-- Menu Flutuante -->
+    <div class="fab-bar">
+        <button class="fab-btn" onclick="APP.openSettings()" title="Configurações">⚙️</button>
+        <button class="fab-btn" onclick="APP.openReport()" title="Fechamento">📊</button>
+    </div>
+
+    <!-- MODAL CONFIRMAÇÃO / COBRANÇA -->
+    <div id="modal-confirm" class="modal-overlay">
+        <div class="modal-box">
+            <h3 class="modal-title" id="confirm-title">Título</h3>
+            <div id="confirm-content">
+                <!-- Conteúdo injetado via JS -->
+            </div>
+            <div class="modal-buttons" style="margin-top:20px;">
+                <button class="btn-modal btn-modal-cancel" onclick="APP.closeConfirm()">Cancelar</button>
+                <button class="btn-modal btn-modal-confirm" id="confirm-btn-action">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIGURAÇÕES -->
+    <div id="modal-settings" class="modal-overlay">
+        <div class="modal-box">
+            <h3 class="modal-title">Configurações do App</h3>
+            
+            <div class="form-group" style="background: #f9fafb; padding: 10px; border-radius: 8px;">
+                <label>Nome da Empresa</label>
+                <input type="text" id="cfg-app-name" placeholder="Ex: Praça Kids" onchange="APP.updateAppName(this.value)">
+                
+                <label style="margin-top:10px;">Cor do Tema</label>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <input type="color" id="cfg-theme-color" value="#2563eb" onchange="APP.updateTheme(this.value)">
+                    <span style="font-size:0.8rem; color:#666;">Toque para escolher</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Preço Padrão por Minuto (R$)</label>
+                <input type="number" id="cfg-price" value="1.0" step="0.10" onchange="APP.updatePrice(this.value)">
+            </div>
+
+            <hr style="border:0; border-top:1px dashed #ddd; margin: 15px 0;">
+
+            <div class="form-group">
+                <label>Nova Categoria</label>
+                <div style="display:flex; gap:8px;">
+                    <input type="text" id="new-cat" placeholder="Ex: Patinetes">
+                    <button class="btn-green" style="width: 80px; border-radius:8px;" onclick="APP.addCategory()">Add</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Novo Brinquedo</label>
+                <select id="cat-select" style="margin-bottom:8px;"></select>
+                <input type="text" id="new-toy" placeholder="Nome do Brinquedo">
+                <button class="btn-full btn-green" style="margin-top:8px;" onclick="APP.addToy()">Salvar Brinquedo</button>
+            </div>
+            
+            <button class="btn-full" style="background:#6b7280; margin-top:10px;" onclick="APP.closeModal('modal-settings')">Voltar</button>
+        </div>
+    </div>
+
+    <!-- MODAL RELATÓRIO -->
+    <div id="modal-report" class="modal-overlay">
+        <div class="modal-box">
+            <h3 class="modal-title">Fechamento de Caixa</h3>
+            <div id="report-content" style="max-height: 300px; overflow-y: auto; margin-bottom: 20px;"></div>
+            
+            <div class="modal-buttons">
+                <button class="btn-modal btn-modal-cancel" onclick="APP.closeModal('modal-report')">Fechar</button>
+                <button class="btn-modal btn-modal-danger" onclick="APP.preResetDay()">ZERAR CAIXA</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const APP = {
+            data: {
+                config: { 
+                    price: 1.0,
+                    appName: "Gestor de Aluguéis",
+                    themeColor: "#2563eb"
+                },
+                categories: [
+                    { id: 'c1', name: 'Drifts' },
+                    { id: 'c2', name: 'Bicicletas' }
+                ],
+                toys: [
+                    { id: 't1', catId: 'c1', name: 'Drift Preto', total: 0, status: 'free' },
+                    { id: 't2', catId: 'c1', name: 'Drift Vermelho', total: 0, status: 'free' },
+                    { id: 't3', catId: 'c2', name: 'Bike Azul', total: 0, status: 'free' }
+                ],
+                dayTotal: 0
+            },
+            
+            pendingAction: null,
+
+            init() {
+                try {
+                    const saved = localStorage.getItem('galvo_praca_v3');
+                    if(saved) {
+                        const parsed = JSON.parse(saved);
+                        APP.data = { ...APP.data, ...parsed };
+                        if (!parsed.config || !parsed.config.appName) {
+                             APP.data.config.appName = "Gestor de Aluguéis";
+                        }
+                        APP.data.config = { ...APP.data.config, ...parsed.config };
+                    }
+                } catch(e) { console.log('Storage Error'); }
+                
+                APP.applyTheme(APP.data.config.themeColor);
+                document.getElementById('app-title-display').innerText = APP.data.config.appName;
+                
+                document.getElementById('cfg-price').value = APP.data.config.price;
+                document.getElementById('cfg-app-name').value = APP.data.config.appName;
+                document.getElementById('cfg-theme-color').value = APP.data.config.themeColor;
+
+                APP.render();
+                setInterval(APP.tick, 1000);
+            },
+
+            save() {
+                try {
+                    localStorage.setItem('galvo_praca_v3', JSON.stringify(APP.data));
+                } catch(e) {}
+                APP.updateHeader();
+            },
+
+            // --- FUNÇÕES DE PERSONALIZAÇÃO ---
+            
+            updateAppName(name) {
+                if(!name) name = "Gestor de Aluguéis";
+                APP.data.config.appName = name;
+                document.getElementById('app-title-display').innerText = name;
+                APP.save();
+            },
+
+            updateTheme(color) {
+                APP.data.config.themeColor = color;
+                APP.applyTheme(color);
+                APP.save();
+            },
+
+            applyTheme(color) {
+                const root = document.documentElement;
+                root.style.setProperty('--primary', color);
+                root.style.setProperty('--primary-dark', color);
+                const meta = document.getElementById('meta-theme-color');
+                if(meta) meta.setAttribute('content', color);
+            },
+
+            // --- LÓGICA DO ALUGUEL ---
+
+            start(id) {
+                const toy = APP.data.toys.find(t => t.id === id);
+                const input = document.getElementById(`inp-${id}`);
+                let mins = 20;
+                if(input) mins = parseInt(input.value) || 20;
+
+                if(toy) {
+                    toy.status = 'busy';
+                    toy.start = Date.now();
+                    toy.duration = mins;
+                    toy.end = Date.now() + (mins * 60 * 1000);
+                    APP.save();
+                    APP.render();
+                }
+            },
+
+            // NOVA FUNÇÃO: Adicionar tempo
+            addTime(id) {
+                const toy = APP.data.toys.find(t => t.id === id);
+                if(toy && toy.status === 'busy') {
+                    // Adiciona 5 minutos (5 * 60 * 1000 ms)
+                    toy.end += 300000;
+                    toy.duration += 5; // Apenas para registro visual se precisasse
+                    APP.save();
+                    APP.render();
+                }
+            },
+
+            // COBRAR (Atualizado para permitir edição)
+            preStop(id) {
+                const toy = APP.data.toys.find(t => t.id === id);
+                if(!toy) return;
+
+                const now = Date.now();
+                let finalMin = toy.duration;
+                let extra = 0;
+
+                if(now > toy.end) {
+                    const diff = now - toy.end;
+                    extra = Math.ceil(diff / 60000);
+                    finalMin += extra;
+                }
+
+                const calculatedVal = finalMin * APP.data.config.price;
+
+                const title = document.getElementById('confirm-title');
+                const content = document.getElementById('confirm-content');
+                const btn = document.getElementById('confirm-btn-action');
+
+                title.innerText = "Encerrar e Cobrar";
+                title.style.color = APP.data.config.themeColor; 
+                
+                content.innerHTML = `
+                    <p style="margin:0 0 10px 0; color:#333;"><strong>${toy.name}</strong></p>
+                    <p style="margin:0 0 15px 0; font-size:0.9rem; color:#666;">
+                        Tempo Total: ${finalMin} min <span style="color:#dc2626;">(${extra > 0 ? '+' + extra + ' excedente' : 'normal'})</span>
+                    </p>
+                    
+                    <label class="editable-price-label">Valor Final (Toque para editar)</label>
+                    <input type="number" id="final-price-input" class="editable-price-input" value="${calculatedVal.toFixed(2)}" step="0.10">
+                `;
+                
+                btn.innerText = "Receber";
+                btn.className = "btn-modal btn-modal-confirm";
+                
+                APP.pendingAction = () => {
+                    // Pega o valor que está no input (editado ou não)
+                    const inputVal = document.getElementById('final-price-input').value;
+                    const finalPrice = parseFloat(inputVal);
+
+                    if(isNaN(finalPrice) || finalPrice < 0) {
+                        alert("Valor inválido");
+                        return;
+                    }
+
+                    toy.status = 'free';
+                    toy.total += finalPrice;
+                    APP.data.dayTotal += finalPrice;
+                    delete toy.start; delete toy.end; delete toy.duration;
+                    APP.save();
+                    APP.render();
+                    APP.closeConfirm();
+                };
+                APP.openConfirm();
+            },
+
+            preReset(id) {
+                const toy = APP.data.toys.find(t => t.id === id);
+                const title = document.getElementById('confirm-title');
+                const content = document.getElementById('confirm-content');
+                const btn = document.getElementById('confirm-btn-action');
+
+                title.innerText = "Cancelar?";
+                title.style.color = "#dc2626";
+                content.innerHTML = `<p class="modal-text">Resetar <strong>${toy.name}</strong> sem cobrar nada?</p>`;
+                
+                btn.innerText = "Sim, Cancelar";
+                btn.className = "btn-modal btn-modal-danger";
+
+                APP.pendingAction = () => {
+                    toy.status = 'free';
+                    delete toy.start; delete toy.end; delete toy.duration;
+                    APP.save();
+                    APP.render();
+                    APP.closeConfirm();
+                };
+                APP.openConfirm();
+            },
+            
+            preResetDay() {
+                 APP.closeModal('modal-report');
+                 const title = document.getElementById('confirm-title');
+                 const content = document.getElementById('confirm-content');
+                 const btn = document.getElementById('confirm-btn-action');
+
+                 title.innerText = "NOVO DIA";
+                 title.style.color = "#dc2626";
+                 content.innerHTML = `<p class="modal-text">Zerar todo o caixa de hoje? Essa ação não pode ser desfeita.</p>`;
+                 
+                 btn.innerText = "Zerar Tudo";
+                 btn.className = "btn-modal btn-modal-danger";
+                 
+                 APP.pendingAction = () => {
+                     APP.data.dayTotal = 0;
+                     APP.data.toys.forEach(t => { t.total = 0; t.status = 'free'; });
+                     APP.save();
+                     APP.render();
+                     APP.closeConfirm();
+                 };
+                 APP.openConfirm();
+            },
+            
+            preDeleteToy(id) {
+                 const title = document.getElementById('confirm-title');
+                 const content = document.getElementById('confirm-content');
+                 const btn = document.getElementById('confirm-btn-action');
+                 
+                 title.innerText = "Excluir";
+                 title.style.color = "#333";
+                 content.innerHTML = `<p class="modal-text">Apagar este brinquedo permanentemente?</p>`;
+                 
+                 btn.innerText = "Excluir";
+                 btn.className = "btn-modal btn-modal-danger";
+                 
+                 APP.pendingAction = () => {
+                     APP.data.toys = APP.data.toys.filter(t => t.id !== id);
+                     APP.save();
+                     APP.render();
+                     APP.closeConfirm();
+                 }
+                 APP.openConfirm();
+            },
+
+            addCategory() {
+                const input = document.getElementById('new-cat');
+                if(input.value) {
+                    APP.data.categories.push({ id: 'c'+Date.now(), name: input.value });
+                    input.value = '';
+                    APP.save();
+                    APP.render();
+                }
+            },
+
+            addToy() {
+                const name = document.getElementById('new-toy').value;
+                const catId = document.getElementById('cat-select').value;
+                if(name && catId) {
+                    APP.data.toys.push({
+                        id: 't'+Date.now(),
+                        catId: catId,
+                        name: name,
+                        total: 0,
+                        status: 'free'
+                    });
+                    document.getElementById('new-toy').value = '';
+                    APP.save();
+                    APP.render();
+                    APP.closeModal('modal-settings');
+                }
+            },
+            
+            updatePrice(val) {
+                APP.data.config.price = parseFloat(val);
+                APP.save();
+            },
+
+            render() {
+                const container = document.getElementById('main-area');
+                container.innerHTML = '';
+                const select = document.getElementById('cat-select');
+                select.innerHTML = '';
+
+                APP.data.categories.forEach(cat => {
+                    const opt = document.createElement('option');
+                    opt.value = cat.id;
+                    opt.innerText = cat.name;
+                    select.appendChild(opt);
+
+                    const title = document.createElement('div');
+                    title.className = 'cat-title';
+                    title.innerText = cat.name;
+                    container.appendChild(title);
+
+                    const grid = document.createElement('div');
+                    grid.className = 'grid';
+
+                    const toys = APP.data.toys.filter(t => t.catId === cat.id);
+                    toys.forEach(toy => {
+                        const card = document.createElement('div');
+                        card.id = `card-${toy.id}`;
+                        
+                        let html = '';
+                        if(toy.status === 'free') {
+                            card.className = 'card livre';
+                            html = `
+                                <div class="card-header">
+                                    <span class="toy-name">${toy.name}</span>
+                                    <button class="btn-trash-toy" onclick="APP.preDeleteToy('${toy.id}')">✕</button>
+                                </div>
+                                <div class="toy-stats">Hoje: R$ ${toy.total.toFixed(2)}</div>
+                                <div style="margin-top:auto">
+                                    <input type="number" id="inp-${toy.id}" class="input-time" value="20" inputmode="numeric">
+                                    <button class="btn-full btn-green" onclick="APP.start('${toy.id}')">INICIAR</button>
+                                </div>
+                            `;
+                        } else {
+                            const isOver = Date.now() > toy.end;
+                            card.className = isOver ? 'card vencido' : 'card ocupado';
+                            html = `
+                                <div class="card-header">
+                                    <span class="toy-name">${toy.name}</span>
+                                </div>
+                                <div class="timer-display ${isOver?'red':''}" id="tm-${toy.id}">--:--</div>
+                                <div style="display:flex; justify-content:center; margin-bottom:10px;">
+                                    <button class="btn-blue" style="padding:5px 15px; font-size:0.8rem;" onclick="APP.addTime('${toy.id}')">+5 min</button>
+                                </div>
+                                <div class="actions" style="margin-top:auto">
+                                    <button class="btn-icon" onclick="APP.preReset('${toy.id}')">🗑️</button>
+                                    <button class="btn-full btn-red" onclick="APP.preStop('${toy.id}')">COBRAR</button>
+                                </div>
+                            `;
+                        }
+                        
+                        card.innerHTML = html;
+                        grid.appendChild(card);
+                    });
+                    
+                    container.appendChild(grid);
+                });
+                
+                APP.updateHeader();
+            },
+
+            tick() {
+                const now = Date.now();
+                APP.data.toys.forEach(t => {
+                    if(t.status === 'busy') {
+                        const el = document.getElementById(`tm-${t.id}`);
+                        const card = document.getElementById(`card-${t.id}`);
+                        if(el && card) {
+                            const diff = t.end - now;
+                            if(diff > 0) {
+                                el.innerText = APP.fmt(diff);
+                                el.className = 'timer-display';
+                                card.className = 'card ocupado';
+                            } else {
+                                el.innerText = "-" + APP.fmt(Math.abs(diff));
+                                el.className = 'timer-display red';
+                                card.className = 'card vencido';
+                            }
+                        }
+                    }
+                });
+            },
+
+            updateHeader() {
+                document.getElementById('total-revenue').innerText = `R$ ${APP.data.dayTotal.toFixed(2)}`;
+                const count = APP.data.toys.filter(t => t.status === 'busy').length;
+                document.getElementById('active-count').innerText = `${count} Ativos`;
+            },
+            
+            fmt(ms) {
+                const s = Math.floor((ms/1000)%60);
+                const m = Math.floor((ms/1000)/60);
+                return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            },
+
+            openSettings() { document.getElementById('modal-settings').style.display = 'flex'; },
+            
+            openReport() { 
+                const div = document.getElementById('report-content');
+                let html = '<table>';
+                const sorted = [...APP.data.toys].sort((a,b) => b.total - a.total);
+                sorted.forEach(t => {
+                    if(t.total > 0) html += `<tr><td>${t.name}</td><td style="text-align:right">R$ ${t.total.toFixed(2)}</td></tr>`;
+                });
+                html += `<tr class="total-row"><td>TOTAL</td><td style="text-align:right">R$ ${APP.data.dayTotal.toFixed(2)}</td></tr></table>`;
+                if(APP.data.dayTotal === 0) html = '<p style="text-align:center; color:#999">Sem vendas hoje.</p>';
+                div.innerHTML = html;
+                document.getElementById('modal-report').style.display = 'flex'; 
+            },
+
+            closeModal(id) { document.getElementById(id).style.display = 'none'; },
+
+            openConfirm() {
+                document.getElementById('modal-confirm').style.display = 'flex';
+                // Re-bind click do botão confirmar para evitar duplicidade
+                const btn = document.getElementById('confirm-btn-action');
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+                newBtn.addEventListener('click', () => { if(APP.pendingAction) APP.pendingAction(); });
+            },
+            
+            closeConfirm() {
+                document.getElementById('modal-confirm').style.display = 'none';
+                APP.pendingAction = null;
+            }
+        };
+
+        window.onload = APP.init;
+    </script>
+</body>
+</html>
